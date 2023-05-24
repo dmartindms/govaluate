@@ -112,6 +112,7 @@ func modulusStage(left interface{}, right interface{}, parameters Parameters) (i
 	return math.Mod(left.(float64), right.(float64)), nil
 }
 func gteStage(left interface{}, right interface{}, parameters Parameters) (interface{}, error) {
+	log.Println("gteStage", left, right)
 	if isString(left) && isString(right) {
 		return boolIface(left.(string) >= right.(string)), nil
 	}
