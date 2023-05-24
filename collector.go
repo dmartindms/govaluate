@@ -3,6 +3,8 @@ package govaluate
 import (
 	"errors"
 	"fmt"
+	"math/rand"
+	"time"
 )
 
 type Result struct {
@@ -20,6 +22,10 @@ func NewCollector() *Collector {
 }
 
 func (c *Collector) Decorate(stage *evaluationStage) {
+	c.decorate(stage)
+}
+
+func (c *Collector) decorate(stage *evaluationStage) {
 	if stageSymbolMap[stage.symbol] != nil { // TODO(Dean): Comparison operation map instead
 		result := &Result{
 			Expression: fmt.Sprintf("%s %s %s", c.unpack(stage.leftStage), stage.symbol, c.unpack(stage.rightStage)),
@@ -38,17 +44,33 @@ func (c *Collector) Decorate(stage *evaluationStage) {
 	}
 }
 
-func (c *Collector) Get(name string) (interface{}, error) {
-	return c.Params.Get(name)
+func (c *Collector) ParsedResults() {
 }
+
 func (c *Collector) unpack(stage *evaluationStage) string {
+	//fmt.Println("unpack: ", stage.symbol)
+	if stageSymbolMap[stage.symbol] != nil {
+		key := randomString(4)
+		//c.Results = append(c.Results, &Result{Expression: key})
+		c.decorate(stage)
+		return key
+	}
+
 	lastParam := c.Params.LastParam()
-	l, _ := stage.operator(nil, nil, c.Params)
+
+	l, err := stage.operator(nil, nil, c.Params)
+	if err != nil {
+		panic("aaahhhhhhhhh" + err.Error()) //todo
+	}
 	if lastParam != c.Params.LastParam() {
 		return c.Params.LastParam()
 	}
 
 	return fmt.Sprint(l)
+}
+
+func (c *Collector) Get(name string) (interface{}, error) {
+	return c.Params.Get(name)
 }
 
 type ParamBag struct {
@@ -78,4 +100,11 @@ func (c *ParamBag) LastParam() string {
 		return ""
 	}
 	return c.collected[len(c.collected)-1]
+}
+
+func randomString(length int) string {
+	rand.Seed(time.Now().UnixNano())
+	b := make([]byte, length+2)
+	rand.Read(b)
+	return fmt.Sprintf("%x", b)[2 : length+2]
 }
