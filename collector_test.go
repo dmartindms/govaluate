@@ -16,15 +16,20 @@ func TestSimpleResultCollection(t *testing.T) {
 	collector := NewCollector()
 	collector.Params.Set("age", 21)
 	collector.Decorate(exp.evaluationStages)
-	if collector.Results[0].Expression != "age >= 21" {
-		t.Error("failed to collect results")
-	}
-	fmt.Println(collector.Results)
 
 	res, err := exp.Eval(collector)
 	if err != nil {
 		t.Error(err)
 	}
+
+	r := collector.Results[0]
+	if r.Expression != "age >= 21" || r.Evaluation == false {
+		t.Error("failed to collect results")
+	}
+	for _, r := range collector.Results {
+		fmt.Println(r.Expression, " was: ", r.Evaluation)
+	}
+
 	log.Println(exp, "==", res)
 }
 

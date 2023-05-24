@@ -12,7 +12,7 @@ type Result struct {
 
 type Collector struct {
 	Params  *ParamBag
-	Results []Result
+	Results []*Result
 }
 
 func NewCollector() *Collector {
@@ -20,12 +20,21 @@ func NewCollector() *Collector {
 }
 
 func (c *Collector) Decorate(stage *evaluationStage) {
-	// TODO(Dean): Comparison operation map instead
-	if stageSymbolMap[stage.symbol] != nil {
-		c.Results = append(c.Results, Result{
+	if stageSymbolMap[stage.symbol] != nil { // TODO(Dean): Comparison operation map instead
+		result := &Result{
 			Expression: fmt.Sprintf("%s %s %s", c.unpack(stage.leftStage), stage.symbol, c.unpack(stage.rightStage)),
-			Evaluation: false, // todo??
-		})
+			Evaluation: false, // TODO(Dean): Better default value?
+		}
+
+		// Collect evaluation once it's ran.
+		old := stage.operator
+		stage.operator = func(left interface{}, right interface{}, parameters Parameters) (interface{}, error) {
+			res, err := old(left, right, parameters)
+			result.Evaluation = res.(bool)
+			return res, err
+		}
+
+		c.Results = append(c.Results, result)
 	}
 }
 
