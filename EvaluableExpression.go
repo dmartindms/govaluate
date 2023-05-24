@@ -229,8 +229,20 @@ func (this EvaluableExpression) evaluateStage(stage *evaluationStage, parameters
 		}
 	}
 
-	return stage.operator(left, right, parameters)
+	res, err := stage.operator(left, right, parameters)
+
+	if stage.symbol == VALUE {
+		//log.Println("Unpacked value: ", res)
+	}
+
+	if stageSymbolMap[stage.symbol] != nil {
+		//log.Println(left, stage.symbol, right)
+	}
+
+	return res, err
 }
+
+var stack []interface{}
 
 func typeCheck(check stageTypeCheck, value interface{}, symbol OperatorSymbol, format string) error {
 
