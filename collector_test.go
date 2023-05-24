@@ -13,23 +13,19 @@ func TestSimpleResultCollection(t *testing.T) {
 		t.Error("couldn't parse expression: ", err)
 	}
 
-	params := NewCollectingParams()
-	params.Set("age", 21)
-	res, err := exp.Eval(params)
+	collector := NewCollector()
+	collector.Params.Set("age", 21)
+	collector.Decorate(exp.evaluationStages)
+	if collector.Results[0].Expression != "age >= 21" {
+		t.Error("failed to collect results")
+	}
+	fmt.Println(collector.Results)
 
+	res, err := exp.Eval(collector)
 	if err != nil {
 		t.Error(err)
 	}
 	log.Println(exp, "==", res)
-
-	if params.LastParam() != "age" {
-		t.Error("failed to log last parameter, got: " + params.LastParam())
-	}
-
-	var results = make(map[string]bool)
-	if results["age >= 21"] != true {
-		t.Error("result 'age >= 21' was not in the results map")
-	}
 }
 
 func TestDecoratorCollector(t *testing.T) {
